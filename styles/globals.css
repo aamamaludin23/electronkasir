@@ -1,0 +1,46 @@
+
+:root {
+  --background-primary: #ffffff;
+  --background-secondary: #f3f4f6;
+  --background-tertiary: #e5e7eb;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --accent-color: #4f46e5;
+  --border-default: #d1d5db;
+}
+
+[data-theme="dark"] {
+  --background-primary: #111827;
+  --background-secondary: #1f2937;
+  --background-tertiary: #374151;
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --accent-color: #6366f1;
+  --border-default: #4b5563;
+}
+
+body {
+  background-color: var(--background-primary);
+  color: var(--text-primary);
+}
+
+.accent-color {
+    color: var(--accent-color);
+}
+
+.border-accent {
+    border-color: var(--accent-color);
+}
+
+@media print {
+  @page {
+    size: auto;
+    margin: 0;
+  }
+  body {
+    margin: 0;
+  }
+  .printable-report {
+    padding: 20px;
+  }
+}

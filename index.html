@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KasirPro - Point of Sale</title>
+
+    <!-- ✅ perbaikan di sini -->
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" content="#4f46e5" />
+
+    <!-- font & style -->
+    <style>
+      @import url('https://rsms.me/inter/inter.css');
+      /* (biarkan style custom kamu tetap sama) */
+    </style>
+
+    <!-- ✅ ganti importmap ke lokal / internal build -->
+    <!-- Hilangkan semua yang pakai https://aistudiocdn.com -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- ✅ Ubah path absolut ke relatif -->
+    <script type="module" src="./index.tsx"></script>
+  </body>
+</html>
