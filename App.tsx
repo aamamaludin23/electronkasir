@@ -21,8 +21,8 @@ import ReportsPage from './features/reports/ReportsPage';
 import { useNotification } from './context/NotificationContext';
 import { Modal } from './components/Modal';
 import { TransactionSuccessModal } from './features/cashier/TransactionSuccessModal';
-import "inter-ui/inter.css";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import MainLayout from './layout/MainLayout';
 
 
 // --- NEW MODAL COMPONENT ---
@@ -101,14 +101,10 @@ const PageRenderer: React.FC = () => {
     }
 
     return (
-         <div className="flex flex-col h-screen bg-primary text-primary">
-            <Header page={page} setPage={setPage} />
-            <main className="flex-1 overflow-y-auto p-4 md:p-6 mb-16 md:mb-0">
-                {renderPage()}
-            </main>
-            <BottomNav page={page} setPage={setPage} />
-        </div>
-    );
+         <MainLayout>
+      {renderPage()}
+    </MainLayout>
+  );
 };
 
 const AppContent: React.FC = () => {

@@ -98,82 +98,44 @@ const CashierPage: React.FC = () => {
 
     useEffect(() => { if (isSearching && searchInputRef.current) searchInputRef.current.focus(); }, [isSearching]);
 
-    // ==============================
-// 🔁 Reset kolom pencarian
-// ==============================
-const resetSearch = useCallback(() => {
-  setSearchTerm("");
-  setFocusedSearchIndex(-1);
+    const resetSearch = useCallback(() => {
+        setSearchTerm(''); setFocusedSearchIndex(-1); setIsSearching(false);
+        setSelectedItemForPrice(null); setShowPriceModal(false); setItemToEditUnit(null);
+    }, []);
+
+    const addToCart = useCallback((item: Item, priceTier: PriceTier) => {
+        const itemKey = `${item.id}-${priceTier.name}`;
+        setCart(prevCart => {
+            const existingItemIndex = prevCart.findIndex(ci => ci.id === item.id && ci.priceTier.name === priceTier.name);
+            if (existingItemIndex > -1) {
+                const newCart = [...prevCart];
+                newCart[existingItemIndex] = { ...newCart[existingItemIndex], quantity: newCart[existingItemIndex].quantity + 1 };
+                return newCart;
+            }
+            return [...prevCart, { ...item, quantity: 1, priceTier }];
+        });
+        setItemToFocusQty(itemKey);
+        resetSearch();
+    }, [setCart, resetSearch]);
+
+    const handleItemClick = useCallback((item: Item) => {
+  if (!item) return;
+
+  if (item.prices?.length > 1) {
+    setSelectedItemForPrice(item);
+    setFocusedPriceIndex(0);
+    setShowPriceModal(true);
+  } else if (item.prices?.length === 1) {
+    addToCart(item, item.prices[0]);
+  }
+
+  // 🔧 Tambahan agar produk lain bisa diinput setelah 1 barang
   setTimeout(() => {
-    searchInputRef.current?.focus();
-  }, 50);
-}, []);
-
-// ==============================
-// 🛒 Tambah Produk ke Keranjang
-// ==============================
-const addToCart = useCallback(
-  (item: Item, priceTier: PriceTier) => {
-    const itemKey = `${item.id}-${priceTier.name}`;
-    setCart((prevCart) => {
-      const existingItemIndex = prevCart.findIndex(
-        (ci) => ci.id === item.id && ci.priceTier.name === priceTier.name
-      );
-      if (existingItemIndex > -1) {
-        const newCart = [...prevCart];
-        newCart[existingItemIndex] = {
-          ...newCart[existingItemIndex],
-          quantity: newCart[existingItemIndex].quantity + 1,
-        };
-        return newCart;
-      }
-      return [...prevCart, { ...item, quantity: 1, priceTier }];
-    });
-    setItemToFocusQty(itemKey);
-    resetSearch();
-  },
-  [setCart, resetSearch]
-);
-
-// ==============================
-// 🧩 Pemilihan Produk (klik / enter)
-// ==============================
-const handleSelectItem = useCallback(
-  (item: Item) => {
-    if (!item) return;
-
-    // Produk punya beberapa varian harga → buka modal satuan
-    if (item.prices?.length > 1) {
-      setSelectedItemForPrice(item);
-      setShowPriceModal(true);
-      return; // 🚫 STOP di sini, jangan resetSearch
-    }
-
-    // Hanya satu harga → langsung tambah ke keranjang
-    if (item.prices?.length === 1) {
-      const selectedPrice = item.prices[0];
-      addToCart(item, selectedPrice);
-    } else {
-      console.warn("Produk tanpa harga:", item.nama);
-    }
-
-    // ✅ Hanya reset kalau bukan produk varian
-    setTimeout(() => {
-      setSearchTerm('');
-      setIsSearching(false);
-      if (searchInputRef.current) searchInputRef.current.focus();
-    }, 100);
-  },
-  [addToCart]
-);
-
-// ====================useContext==========
-// 👆 Klik Produk
-// ==============================
-const handleItemClick = useCallback(
-  (item: Item) => handleSelectItem(item),
-  [handleSelectItem]
-);
+    setSearchTerm('');
+    setIsSearching(false);
+    if (fuse && items?.length > 0) fuse.setCollection(items); // refresh daftar produk
+  }, 300);
+}, [addToCart, fuse, items]);
     
     // Barcode scanner listener
     useEffect(() => {
@@ -218,25 +180,12 @@ const handleItemClick = useCallback(
     
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (showPriceModal || showPaymentModal || showDeleteConfirm || itemToEditUnit) return;
+            if (showPaymentModal || showPriceModal || itemToEditUnit || showDeleteConfirm) return;
             if (e.key === 'F10' && cart.length > 0) { e.preventDefault(); setShowPaymentModal(true); }
             if (isSearching) {
                 if (e.key === 'ArrowDown') { e.preventDefault(); setFocusedSearchIndex(prev => Math.min(prev + 1, filteredItems.length - 1)); } 
                 else if (e.key === 'ArrowUp') { e.preventDefault(); setFocusedSearchIndex(prev => Math.max(prev - 1, 0)); } 
-                else if (e.key === 'Enter') {
-  e.preventDefault();
-  if (focusedSearchIndex >= 0 && !showPriceModal) {
-    const selectedItem = filteredItems[focusedSearchIndex];
-    if (selectedItem) {
-      if (selectedItem.prices?.length > 1) {
-        setSelectedItemForPrice(selectedItem);
-        setShowPriceModal(true);
-      } else {
-        handleItemClick(selectedItem);
-      }
-    }
-  }
-}
+                else if (e.key === 'Enter') { e.preventDefault(); if (focusedSearchIndex >= 0) handleItemClick(filteredItems[focusedSearchIndex]); } 
                 else if (e.key === 'Escape') { resetSearch(); }
                 return;
             }
@@ -259,36 +208,20 @@ const handleItemClick = useCallback(
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isSearching, showPriceModal, itemToEditUnit, focusedSearchIndex, filteredItems, showPaymentModal, cart, focusedCartIndex, handleItemClick, resetSearch, showDeleteConfirm]);
     
-	// Handle Enter key ketika modal satuan aktif
-useEffect(() => {
-  if (!showPriceModal || !selectedItemForPrice) return;
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const selectedPrice = selectedItemForPrice.prices[focusedPriceIndex];
-      if (selectedPrice) {
-        addToCart(selectedItemForPrice, selectedPrice);
-        setShowPriceModal(false);
-        setSelectedItemForPrice(null);
-        setFocusedPriceIndex(0);
-        searchInputRef.current?.focus();
-      }
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setFocusedPriceIndex((prev) => (prev + 1) % selectedItemForPrice.prices.length);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setFocusedPriceIndex((prev) =>
-        (prev - 1 + selectedItemForPrice.prices.length) %
-        selectedItemForPrice.prices.length
-      );
-    }
-  };
-
-  window.addEventListener("keydown", handleKeyDown);
-  return () => window.removeEventListener("keydown", handleKeyDown);
-}, [showPriceModal, selectedItemForPrice, focusedPriceIndex, addToCart]);
+    useEffect(() => {
+        if (showPriceModal) {
+            const handleModalKeyDown = (e: KeyboardEvent) => {
+                const prices = selectedItemForPrice?.prices;
+                if (!prices) return;
+                if (e.key === 'ArrowDown') { e.preventDefault(); setFocusedPriceIndex(prev => (prev + 1) % prices.length); } 
+                else if (e.key === 'ArrowUp') { e.preventDefault(); setFocusedPriceIndex(prev => (prev - 1 + prices.length) % prices.length); } 
+                else if (e.key === 'Enter') { e.preventDefault(); if (focusedPriceIndex >= 0 && selectedItemForPrice) addToCart(selectedItemForPrice, prices[focusedPriceIndex]); }
+                else if (e.key === 'Escape') { e.preventDefault(); resetSearch(); }
+            };
+            window.addEventListener('keydown', handleModalKeyDown);
+            return () => window.removeEventListener('keydown', handleModalKeyDown);
+        }
+    }, [showPriceModal, selectedItemForPrice, focusedPriceIndex, addToCart, resetSearch]);
 
     useEffect(() => {
         if (itemToFocusQty) {
@@ -392,16 +325,6 @@ useEffect(() => {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-				  <button
-                      onClick={() => {
-                      setItemToDelete({ itemId: item.id, priceTierName: item.priceTier.name });
-                      setShowDeleteConfirm(true);
-                    }}
-                    className="w-8 h-8 rounded-full bg-red-100 text-red-600 font-bold hover:bg-red-200"
-                    title="Hapus produk"
-                   >
-                     ✕
-                   </button>
                     <button
                       onClick={() => updateQuantity(item.id, item.priceTier.name, -1)}
                       className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 font-bold hover:bg-gray-300"
@@ -459,36 +382,23 @@ useEffect(() => {
           setFocusedSearchIndex(0);
         }}
         onKeyDown={(e) => {
-  if (filteredItems.length === 0) return;
-
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    setFocusedSearchIndex((prev) =>
-      prev < filteredItems.length - 1 ? prev + 1 : 0
-    );
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    setFocusedSearchIndex((prev) =>
-      prev > 0 ? prev - 1 : filteredItems.length - 1
-    );
-  } else if (e.key === 'Enter') {
-  e.preventDefault();
-  const selectedItem = filteredItems[focusedSearchIndex];
-  if (selectedItem) {
-    if (selectedItem.prices?.length > 1) {
-      // Buka popup variasi
-      setSelectedItemForPrice(selectedItem);
-      setShowPriceModal(true);
-    } else {
-      // Langsung tambah kalau tidak ada variasi
-      handleSelectItem(selectedItem);
-    }
-  }
-} else if (e.key === 'Escape') {
-    setSearchTerm('');
-    setIsSearching(false);
-  }
-}}
+          if (filteredItems.length > 0) {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              setFocusedSearchIndex((prev) => (prev + 1) % filteredItems.length);
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              setFocusedSearchIndex((prev) => (prev - 1 + filteredItems.length) % filteredItems.length);
+            } else if (e.key === 'Enter') {
+              e.preventDefault();
+              const selectedItem = filteredItems[focusedSearchIndex];
+              if (selectedItem) handleItemClick(selectedItem);
+            } else if (e.key === 'Escape') {
+              setSearchTerm('');
+              setIsSearching(false);
+            }
+          }
+        }}
         className="w-full p-3 border-2 border-indigo-500 rounded-lg focus:outline-none"
       />
 
@@ -582,57 +492,6 @@ useEffect(() => {
         </button>
       </div>
     </div>
-	{/* === POPUP PILIH SATUAN / VARIAN HARGA === */}
-{showPriceModal && selectedItemForPrice && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]">
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-5 w-80 text-gray-900 dark:text-gray-100">
-      <h3 className="text-lg font-semibold mb-3 text-center">
-        Pilih Satuan untuk <br />
-        <span className="text-blue-600">{selectedItemForPrice.name}</span>
-      </h3>
-
-      <div className="space-y-2">
-        {selectedItemForPrice.prices.map((priceTier, i) => (
-          <button
-            key={i}
-            className={`w-full py-2 px-3 rounded-lg border text-left ${
-              i === focusedPriceIndex
-                ? 'bg-blue-500 text-white border-blue-500'
-                : 'bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-gray-600 border-gray-300'
-            }`}
-            onClick={() => {
-              addToCart(selectedItemForPrice, priceTier);
-              setShowPriceModal(false);
-              setSelectedItemForPrice(null);
-            }}
-          >
-            {priceTier.name} — Rp{priceTier.price.toLocaleString('id-ID')}
-          </button>
-        ))}
-      </div>
-
-      <button
-        className="mt-4 w-full bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 py-2 rounded-lg"
-        onClick={() => {
-          setShowPriceModal(false);
-          setSelectedItemForPrice(null);
-        }}
-      >
-        Batal
-      </button>
-    </div>
-  </div>
-)}
-
-{showDeleteConfirm && (
-  <ConfirmationModal
-    title="Hapus Item"
-    message="Apakah kamu yakin ingin menghapus item ini dari keranjang?"
-    onConfirm={confirmDeleteItem}
-    onCancel={() => setShowDeleteConfirm(false)}
-  />
-)}
-
   </div>
  );
 };

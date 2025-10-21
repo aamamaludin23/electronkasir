@@ -1,10 +1,13 @@
-export default {
+module.exports = {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}"
+    "./index.tsx",
+    "./components/**/*.{ts,tsx}",
+    "./features/**/*.{ts,tsx}",
+    "./layout/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {},
   },
   plugins: [],
-}
+};

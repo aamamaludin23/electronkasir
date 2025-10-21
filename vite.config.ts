@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: './', // ✅ wajib untuk Electron
+  base: './', // penting untuk Electron agar path relatif
   build: {
     outDir: 'dist',
   },

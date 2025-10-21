@@ -29,3 +29,5 @@ export const BottomNav: React.FC<BottomNavProps> = ({ page, setPage }) => {
         </div>
     );
 };
+
+export default BottomNav;

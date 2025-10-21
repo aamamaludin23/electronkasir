@@ -1,46 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background-primary: #ffffff;
-  --background-secondary: #f3f4f6;
-  --background-tertiary: #e5e7eb;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --accent-color: #4f46e5;
-  --border-default: #d1d5db;
+@import url('https://rsms.me/inter/inter.css');
+
+html,body{
+  font-family:'Inter',sans-serif;
+  background-color:var(--background-primary);
+  color:var(--text-primary);
+  transition:background-color .3s ease,color .3s ease;
 }
 
-[data-theme="dark"] {
-  --background-primary: #111827;
-  --background-secondary: #1f2937;
-  --background-tertiary: #374151;
-  --text-primary: #f9fafb;
-  --text-secondary: #9ca3af;
-  --accent-color: #6366f1;
-  --border-default: #4b5563;
+/* tema light (default) */
+:root{
+  --background-primary:#f9fafb;
+  --background-secondary:#fff;
+  --background-tertiary:#f3f4f6;
+  --text-primary:#111827;
+  --text-secondary:#4b5563;
+  --border-default:#e5e7eb;
+  --accent-color:#4f46e5;
+  --accent-color-hover:#4338ca;
+  --accent-color-light:#eef2ff;
+  --accent-text-color:#fff;
 }
 
-body {
-  background-color: var(--background-primary);
-  color: var(--text-primary);
+/* tema dark */
+[data-theme="dark"]{
+  --background-primary:#111827;
+  --background-secondary:#1f2937;
+  --background-tertiary:#374151;
+  --text-primary:#f9fafb;
+  --text-secondary:#9ca3af;
+  --border-default:#374151;
+  --accent-color:#818cf8;
+  --accent-color-hover:#6366f1;
+  --accent-color-light:#3730a3;
+  --accent-text-color:#1e1b4b;
 }
 
-.accent-color {
-    color: var(--accent-color);
+/* tema blue */
+[data-theme="blue"]{
+  --background-primary:#f0f9ff;
+  --background-secondary:#fff;
+  --background-tertiary:#e0f2fe;
+  --text-primary:#0c4a6e;
+  --text-secondary:#0369a1;
+  --border-default:#bae6fd;
+  --accent-color:#0284c7;
+  --accent-color-hover:#0369a1;
+  --accent-color-light:#e0f2fe;
+  --accent-text-color:#fff;
 }
 
-.border-accent {
-    border-color: var(--accent-color);
+/* utilitas */
+.bg-primary{background-color:var(--background-primary);}
+.bg-secondary{background-color:var(--background-secondary);}
+.bg-tertiary{background-color:var(--background-tertiary);}
+.text-primary{color:var(--text-primary);}
+.text-secondary{color:var(--text-secondary);}
+.border-default{border-color:var(--border-default);}
+.accent-bg{background-color:var(--accent-color);color:var(--accent-text-color);}
+.accent-bg:hover{background-color:var(--accent-color-hover);}
+.accent-text{color:var(--accent-color);}
+.accent-bg-light{background-color:var(--accent-color-light);}
+
+/* form & tombol */
+input,select,textarea{
+  background-color:var(--background-secondary);
+  color:var(--text-primary);
+  border:1px solid var(--border-default);
+  border-radius:8px;
+  padding:8px 12px;
+  width:100%;
+  transition:border-color .2s,box-shadow .2s;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--accent-color);
+  box-shadow:0 0 0 2px var(--accent-color-light);
+  outline:none;
+}
+button{
+  transition:all .2s ease;
+  border-radius:8px;
+}
+button:hover:not(:disabled){
+  opacity:.9;
+  transform:scale(1.02);
 }
 
-@media print {
-  @page {
-    size: auto;
-    margin: 0;
-  }
-  body {
-    margin: 0;
-  }
-  .printable-report {
-    padding: 20px;
-  }
+/* scrollbar */
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background-color:var(--accent-color);border-radius:8px;}
+::-webkit-scrollbar-track{background-color:var(--background-tertiary);}
+
+/* cetak */
+@media print{
+  body *{visibility:hidden;}
+  .printable,.printable *{visibility:visible;}
+  .printable{position:absolute;left:0;top:0;}
 }

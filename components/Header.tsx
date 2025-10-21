@@ -50,3 +50,5 @@ export const Header: React.FC<HeaderProps> = ({ page, setPage }) => {
         </nav>
     );
 };
+
+export default Header;
